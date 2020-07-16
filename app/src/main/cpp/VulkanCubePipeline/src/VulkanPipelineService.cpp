@@ -23,28 +23,30 @@ void VulkanPipelineService::initVoxelData(android_app* app) {
 
     //BUG: if you uncomment any of these, you'll see it fall over
     for (size_t i = 0; i < array.size(); i++) {
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians((90.0f + 180.0f)), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+
+
 
         //BUG: if this line is uncommented, it seems to align correctly? I'm guessing I screwed something up elsewhere.
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 20, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 20, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 20, array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 20, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 20, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 20, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 20, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 20, array[static_cast<int>(i)][2].asFloat())));
 
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 40, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 40, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 40, array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 40, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 40, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 40, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 40, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 40, array[static_cast<int>(i)][2].asFloat())));
 
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 60, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 60, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 60, array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 60, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 60, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 60, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 60, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 60, array[static_cast<int>(i)][2].asFloat())));
 
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 80, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 80, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 80, array[static_cast<int>(i)][2].asFloat())));
-        _transformData.emplace_back(glm::translate(glm::identity<glm::mat4>(), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 80, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() + 80, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat() - 80, array[static_cast<int>(i)][1].asFloat(), array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() - 80, array[static_cast<int>(i)][2].asFloat())));
+        _transformData.emplace_back(glm::translate(glm::rotate(glm::identity<glm::mat4>(), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(array[static_cast<int>(i)][0].asFloat(), array[static_cast<int>(i)][1].asFloat() + 80, array[static_cast<int>(i)][2].asFloat())));
 
     }
 
@@ -396,6 +398,18 @@ VkPresentModeKHR VulkanPipelineService::chooseSwapPresentMode(const std::vector<
 }
 
 VkExtent2D VulkanPipelineService::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+    if(capabilities.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_90_BIT_KHR ||
+       capabilities.currentTransform & VK_SURFACE_TRANSFORM_ROTATE_270_BIT_KHR) {
+        VkExtent2D returnExtents{};
+        returnExtents.height = capabilities.currentExtent.width;
+        returnExtents.width = capabilities.currentExtent.height;
+        _width = returnExtents.width;
+        _height = returnExtents.height;
+        return returnExtents;
+    }
+
+    _width = capabilities.currentExtent.width;
+    _height = capabilities.currentExtent.height;
     return capabilities.currentExtent;
 }
 
@@ -640,11 +654,8 @@ void VulkanPipelineService::createGraphicsPipeline() {
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
-    _width = _swapChainExtent.width;
-    _height = _swapChainExtent.height;
-
-    _ubo = { glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 65565.0f) };
-
+    _ubo = { glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), (float)_width / (float)_height, 0.1f, 65565.0f) };
+    _ubo.proj[1][1] *= -1;
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
     scissor.extent = _swapChainExtent;
@@ -1463,7 +1474,7 @@ void VulkanPipelineService::updateCameraUniformBuffer(uint32_t currentImage) {
     float time = delta.count();
 
     //should be 12, 12, 20
-    _ubo.view = glm::rotate(_ubo.view, time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)); //glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    _ubo.view = glm::rotate(_ubo.view, time * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)); //glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     _ubo.proj = glm::perspective(glm::radians(90.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 65565.0f);
     _ubo.proj[1][1] *= -1;
     void* data;
@@ -1503,6 +1514,7 @@ void VulkanPipelineService::updateLightPosUniformBuffer(uint32_t currentImage) {
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
+    //12, 12, 20
     //_transformData[0] = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::vec3 lightPos(4.0f, 4.0f, 4.0f);
     uint32_t transformCollectionSize = sizeof(glm::vec3);
@@ -1629,7 +1641,7 @@ void VulkanPipelineService::cleanup() {
 }
 
 VulkanPipelineService::VulkanPipelineService() noexcept : _app(nullptr),  _debugMessenger(VK_NULL_HANDLE), _instance(VK_NULL_HANDLE), _physicalDevice(VK_NULL_HANDLE) {
-    _ubo.proj[1][1] *= -1;
+
 }
 
 void VulkanPipelineService::launch() {
