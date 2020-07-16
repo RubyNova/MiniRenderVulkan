@@ -920,20 +920,17 @@ void VulkanPipelineService::createTextureImage() {
 
     // Read the file:
 
-    AAsset* file = AAssetManager_open(_app->activity->assetManager,
-                                      "Resources/Textures/texture.png", AASSET_MODE_BUFFER);
-    size_t fileLength = AAsset_getLength(file);
-    stbi_uc* fileContent = new unsigned char[fileLength];
 
-    AAsset_read(file, fileContent, fileLength);
-    AAsset_close(file);
+    FILE* androidFile = android_fopen(_app, "Resources/Textures/texture.png", "r");
 
-    uint32_t imgWidth, imgHeight, n;
-    unsigned char* pixels = stbi_load_from_memory(
-            fileContent, fileLength, reinterpret_cast<int*>(&texWidth),
+    int32_t n;
+    unsigned char* pixels = stbi_load_from_file(
+            androidFile, reinterpret_cast<int*>(&texWidth),
             reinterpret_cast<int*>(&texHeight), reinterpret_cast<int*>(&n), 4);
+
+    fclose(androidFile);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
-    assert(n == 4);
+
     if (!pixels) {
         throw std::runtime_error("failed to load texture image! Reason: " + std::string(stbi_failure_reason()));
     }
@@ -1451,6 +1448,7 @@ void VulkanPipelineService::initVulkan(android_app* app) {
     createDescriptorSets();
     createCommandBuffers();
     createSyncObjects();
+    _initialised = true;
 }
 
 void VulkanPipelineService::updateCameraUniformBuffer(uint32_t currentImage) {

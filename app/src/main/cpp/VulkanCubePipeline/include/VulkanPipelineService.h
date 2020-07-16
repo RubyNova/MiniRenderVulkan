@@ -5,6 +5,7 @@
 #include <vulkan/vulkan_android.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "../../ThirdParty/glm/glm/glm.hpp"
@@ -223,13 +224,13 @@ private:
 
 	std::vector<glm::mat4> _transformData;
 
-    //const bool _enableValidationLayers = false;
+    const bool _enableValidationLayers = false;
 
-#ifdef NDEBUG
+/*#ifdef NDEBUG
 	const bool _enableValidationLayers = false;
 #else
 	const bool _enableValidationLayers = true;
-#endif
+#endif*/
 
 	static VkResult createDebugUtilsMessengerEXTViaProcAddress(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pDebugMessenger) {
 		auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportMessengerEXT");
