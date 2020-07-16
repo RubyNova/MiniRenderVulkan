@@ -18,7 +18,8 @@
 #include <algorithm>
 #include <chrono>
 #include <android_native_app_glue.h>
-#include "../../ThirdParty/jsoncpp/include/json/json.h"
+#include <android/log.h>
+#include "../ThirdParty/jsoncpp/json/json.h"
 
 #include "QueueFamilyIndices.h"
 #include "SwapChainSupportDetails.h"
@@ -26,24 +27,52 @@
 #include "Vertex.h"
 #include "CameraBufferObject.h"
 
-inline VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-	VkDebugUtilsMessageTypeFlagsEXT messageType,
-	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-	void* pUserData) {
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugReportCallback(
+		VkDebugReportFlagsEXT msgFlags,
+		VkDebugReportObjectTypeEXT objType,
+		uint64_t srcObject, size_t location,
+		int32_t msgCode, const char * pLayerPrefix,
+		const char * pMsg, void * pUserData )
+{
+	if (msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+		__android_log_print(ANDROID_LOG_ERROR,
+							"AppName",
+							"ERROR: [%s] Code %i : %s",
+							pLayerPrefix, msgCode, pMsg);
+	} else if (msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+		__android_log_print(ANDROID_LOG_WARN,
+							"AppName",
+							"WARNING: [%s] Code %i : %s",
+							pLayerPrefix, msgCode, pMsg);
+	} else if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
+		__android_log_print(ANDROID_LOG_WARN,
+							"AppName",
+							"PERFORMANCE WARNING: [%s] Code %i : %s",
+							pLayerPrefix, msgCode, pMsg);
+	} else if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
+		__android_log_print(ANDROID_LOG_INFO,
+							"AppName", "INFO: [%s] Code %i : %s",
+							pLayerPrefix, msgCode, pMsg);
+	} else if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
+		__android_log_print(ANDROID_LOG_VERBOSE,
+							"AppName", "DEBUG: [%s] Code %i : %s",
+							pLayerPrefix, msgCode, pMsg);
+	}
 
-	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
-
+	// Returning false tells the layer not to stop when the event occurs, so
+	// they see the same behavior with and without validation layers enabled.
 	return VK_FALSE;
 }
+
 
 class VulkanPipelineService {
 private:
     android_app* _app;
-	CameraBufferObject _ubo{ glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 65565.0f) };
-	const uint32_t _width = 3120 / 2; //TODO: Fix this for my actual screen
-	const uint32_t _height = 1440 / 2;
-	static inline const int32_t INVALID_PHYISCAL_VK_DEVICE = -1;
+	uint32_t _width = 3120; //TODO: Fix this for my actual screen
+	uint32_t _height = 1440;
+    CameraBufferObject _ubo;
+
+    static inline const int32_t INVALID_PHYISCAL_VK_DEVICE = -1;
 	static inline const int32_t MAX_FRAMES_IN_FLIGHT = 2;
 	size_t _voxelInstanceCount = 0;
 	size_t _currentFrame = 0;
@@ -53,7 +82,7 @@ private:
 	bool _initialised = false;
 
 	VkInstance _instance;
-	VkDebugUtilsMessengerEXT _debugMessenger;
+	VkDebugReportCallbackEXT _debugMessenger;
 	VkPhysicalDevice _physicalDevice;
 	VkDevice _logicalDevice;
 
@@ -194,35 +223,48 @@ private:
 
 	std::vector<glm::mat4> _transformData;
 
+    //const bool _enableValidationLayers = false;
+
 #ifdef NDEBUG
 	const bool _enableValidationLayers = false;
 #else
 	const bool _enableValidationLayers = true;
 #endif
 
-	static VkResult createDebugUtilsMessengerEXTViaProcAddress(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+	static VkResult createDebugUtilsMessengerEXTViaProcAddress(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pDebugMessenger) {
+		auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportMessengerEXT");
 		if (func != nullptr) {
-			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
+			std::cout << "CREATING DEBUG MESSENGER" << std::endl;
+		    return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
 		}
 		else {
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
 	}
 
-	static void destroyDebugUtilsMessengerEXTViaProcAddress(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+	static void destroyDebugUtilsMessengerEXTViaProcAddress(VkInstance instance, VkDebugReportCallbackEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+		auto func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			func(instance, debugMessenger, pAllocator);
 		}
 	}
 
-	static VkDebugUtilsMessengerCreateInfoEXT getDebugMessengerCreateInfo() {
-		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
+	static VkDebugReportCallbackCreateInfoEXT getDebugMessengerCreateInfo() {
+/*		VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		createInfo.pfnUserCallback = debugCallback;
+		createInfo.pfnUserCallback = debugCallback;*/
+
+
+		//return createInfo;
+
+		VkDebugReportCallbackCreateInfoEXT createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+		createInfo.flags = VK_DEBUG_REPORT_DEBUG_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_ERROR_BIT_EXT;
+		createInfo.pNext = nullptr;
+		createInfo.pUserData = nullptr;
+		createInfo.pfnCallback = DebugReportCallback;
 		return createInfo;
 	}
 
@@ -323,17 +365,19 @@ private:
 	void updateCameraUniformBuffer(uint32_t currentImage);
 	void updateTransformUniformBuffer(uint32_t currentImage);
 	void updateLightPosUniformBuffer(uint32_t currentImage);
-	void drawFrame();
+
 
 	void mainLoop();
 
 
 
 public:
-	VulkanPipelineService(android_app* app) noexcept;
+	VulkanPipelineService() noexcept;
 
-    void initVoxelData();
-    void initVulkan();
+	inline bool isInitialised() { return _initialised; }
+    void initVoxelData(android_app* app);
+    void initVulkan(android_app* app);
+	void drawFrame();
     void cleanup();
 
 	void launch();

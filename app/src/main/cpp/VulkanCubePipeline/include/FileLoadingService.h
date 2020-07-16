@@ -4,23 +4,22 @@
 #include <fstream>
 #include <vector>
 #include <cstdint>
+#include <android_native_app_glue.h>
 
 class FileLoadingService {
 public:
-    static std::vector<char> readFile(const std::string& filename) {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
+    static std::vector<char> readFile(android_app* androidAppCtx, const std::string& filename) {
 
-        if (!file.is_open()) {
-            throw std::runtime_error("Failed to open file!");
-        }
+        AAsset* file = AAssetManager_open(androidAppCtx->activity->assetManager,
+                                              filename.c_str(), AASSET_MODE_BUFFER);
 
-        size_t fileSize = (size_t)file.tellg();
-        std::vector<char> buffer(fileSize);
-        file.seekg(0);
-        file.read(buffer.data(), fileSize);
-        file.close();
+        size_t fileLength = AAsset_getLength(file);
+        char* fileContent = new char[fileLength];
+        AAsset_read(file, fileContent, fileLength);
 
-        return buffer;
+        AAsset_close(file);
+
+        return std::vector<char>(fileContent, fileContent + fileLength);
     }
 };
 

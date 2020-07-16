@@ -1,19 +1,21 @@
+#include <android/log.h>
 #include "../include/VulkanPipelineService.h"
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
 #include "../../ThirdParty/stb/stb_image.h"
 
-void VulkanPipelineService::initVoxelData() {
+void VulkanPipelineService::initVoxelData(android_app* app) {
     Json::Value root;
-
     auto path = "Resources/VoxelModels/Test.json";
+    auto json = FileLoadingService::readFile(app, path);
 
-    std::ifstream streamReader;
-    streamReader.open(path);
     Json::CharReaderBuilder builder;
+    std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+
     builder["collectComments"] = true;
     Json::String errs;
 
-    if (!parseFromStream(builder, streamReader, &root, &errs)) {
+    if (!reader->parse(json.data(), json.data() + json.size(), &root, &errs)) {
         throw std::runtime_error(errs);
     }
 
@@ -93,7 +95,7 @@ void VulkanPipelineService::createInstance() {
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    VkDebugReportCallbackCreateInfoEXT debugCreateInfo;
 
     if (_enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(_validationLayers.size());
@@ -120,9 +122,12 @@ void VulkanPipelineService::createInstance() {
 
     vkEnumerateInstanceExtensionProperties(nullptr, &vkExtensionCount, vkExtensions.data());
 
-    std::cout << "Available VK Extensions:" << std::endl;
+    __android_log_print(ANDROID_LOG_DEBUG, "Available VK Extensions:",
+                        "No usage and required_pros");
     for (const auto& extension : vkExtensions) {
-        std::cout << '\t' << extension.extensionName << std::endl;
+
+        __android_log_print(ANDROID_LOG_DEBUG, extension.extensionName,
+                            "No usage and required_pros");
     }
 
     std::cout << std::endl;
@@ -147,7 +152,8 @@ void VulkanPipelineService::createInstance() {
     }
 
     if (extensionsFound) {
-        std::cout << "Required extensions for Android rendering found!" << std::endl;
+        __android_log_print(ANDROID_LOG_DEBUG, "Required extensions for Android rendering found!",
+                            "No usage and required_pros");
     }
     else {
         throw std::runtime_error("Unable to find extensions required by Android! Aborting.");
@@ -156,13 +162,13 @@ void VulkanPipelineService::createInstance() {
     std::vector<const char*> extensions(instanceExtensions);
 
     if (_enableValidationLayers) {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
     }
 
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
-    VkResult result = vkCreateInstance(&createInfo, nullptr, &_instance);
+    //VkResult result = vkCreateInstance(&createInfo, nullptr, &_instance);
 
     if (vkCreateInstance(&createInfo, nullptr, &_instance) != VK_SUCCESS) {
         throw std::runtime_error("failed to create instance!");
@@ -174,9 +180,10 @@ void VulkanPipelineService::setupDebugMessenger() {
         return;
     }
 
-    VkDebugUtilsMessengerCreateInfoEXT createInfo = getDebugMessengerCreateInfo();
+    VkDebugReportCallbackCreateInfoEXT createInfo = getDebugMessengerCreateInfo();
 
-    if (createDebugUtilsMessengerEXTViaProcAddress(_instance, &createInfo, nullptr, &_debugMessenger) != VK_SUCCESS) {
+    VkResult fuck = createDebugUtilsMessengerEXTViaProcAddress(_instance, &createInfo, nullptr, &_debugMessenger);
+    if (fuck != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
@@ -589,8 +596,8 @@ VkShaderModule VulkanPipelineService::createShaderModule(const std::vector<char>
 }
 
 void VulkanPipelineService::createGraphicsPipeline() {
-    std::vector<char> vertShader = FileLoadingService::readFile("Resources/Shaders/vert.spv");
-    std::vector<char> fragShader = FileLoadingService::readFile("Resources/Shaders/frag.spv");
+    std::vector<char> vertShader = FileLoadingService::readFile(_app, "Resources/Shaders/vert.spv");
+    std::vector<char> fragShader = FileLoadingService::readFile(_app, "Resources/Shaders/frag.spv");
     VkShaderModule vertShaderModule = createShaderModule(vertShader);
     VkShaderModule fragShaderModule = createShaderModule(fragShader);
 
@@ -632,6 +639,11 @@ void VulkanPipelineService::createGraphicsPipeline() {
     viewport.height = (float)_swapChainExtent.height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
+
+    _width = _swapChainExtent.width;
+    _height = _swapChainExtent.height;
+
+    _ubo = { glm::lookAt(glm::vec3(40.0f, 40.0f, 56.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)), glm::perspective(glm::radians(90.0f), _swapChainExtent.width / (float)_swapChainExtent.height, 0.1f, 65565.0f) };
 
     VkRect2D scissor{};
     scissor.offset = { 0, 0 };
@@ -904,11 +916,26 @@ void VulkanPipelineService::copyBufferToImage(VkBuffer buffer, VkImage image, ui
 
 void VulkanPipelineService::createTextureImage() {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("Resources/Textures/texture.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    VkDeviceSize imageSize = texWidth * texHeight * 4;
 
+
+    // Read the file:
+
+    AAsset* file = AAssetManager_open(_app->activity->assetManager,
+                                      "Resources/Textures/texture.png", AASSET_MODE_BUFFER);
+    size_t fileLength = AAsset_getLength(file);
+    stbi_uc* fileContent = new unsigned char[fileLength];
+
+    AAsset_read(file, fileContent, fileLength);
+    AAsset_close(file);
+
+    uint32_t imgWidth, imgHeight, n;
+    unsigned char* pixels = stbi_load_from_memory(
+            fileContent, fileLength, reinterpret_cast<int*>(&texWidth),
+            reinterpret_cast<int*>(&texHeight), reinterpret_cast<int*>(&n), 4);
+    VkDeviceSize imageSize = texWidth * texHeight * 4;
+    assert(n == 4);
     if (!pixels) {
-        throw std::runtime_error("failed to load texture image!");
+        throw std::runtime_error("failed to load texture image! Reason: " + std::string(stbi_failure_reason()));
     }
 
     VkBuffer stagingBuffer;
@@ -1399,7 +1426,8 @@ void VulkanPipelineService::recreateSwapChain() {
     createCommandBuffers();
 }
 
-void VulkanPipelineService::initVulkan() {
+void VulkanPipelineService::initVulkan(android_app* app) {
+    _app = app;
     createInstance();
     setupDebugMessenger();
     createSurface();
@@ -1599,13 +1627,13 @@ void VulkanPipelineService::cleanup() {
     vkDestroyInstance(_instance, nullptr);
 }
 
-VulkanPipelineService::VulkanPipelineService(android_app* app) noexcept : _app(app),  _debugMessenger(VK_NULL_HANDLE), _instance(VK_NULL_HANDLE), _physicalDevice(VK_NULL_HANDLE) {
+VulkanPipelineService::VulkanPipelineService() noexcept : _app(nullptr),  _debugMessenger(VK_NULL_HANDLE), _instance(VK_NULL_HANDLE), _physicalDevice(VK_NULL_HANDLE) {
     _ubo.proj[1][1] *= -1;
 }
 
 void VulkanPipelineService::launch() {
-    initVoxelData();
+/*    initVoxelData();
     initVulkan();
     mainLoop();
-    cleanup();
+    cleanup();*/
 }

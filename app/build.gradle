@@ -11,6 +11,18 @@ android {
         versionCode 1
         versionName "1.0"
 
+        sourceSets {
+            main {
+                jniLibs {
+                    // Gradle includes libraries in the following path as dependencies
+                    // of your CMake or ndk-build project so that they are packaged in
+                    // your app’s APK.
+                    srcDir "C:/Users/Matt/AppData/Local/Android/Sdk/ndk/21.1.6352462ndk-path/sources/third_party/vulkan/src/build-android/jniLibs"
+                }
+            }
+        }
+
+
         externalNativeBuild {
             cmake {
                 abiFilters "armeabi-v7a", 'arm64-v8a', 'x86', 'x86_64'

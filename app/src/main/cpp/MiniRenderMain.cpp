@@ -14,17 +14,21 @@
 #include <android/log.h>
 #include <android_native_app_glue.h>
 #include "VulkanMain.hpp"
+#include "VulkanCubePipeline/include/VulkanPipelineService.h"
+#include <memory>
+
+std::unique_ptr<VulkanPipelineService> _pipeline = nullptr;
 
 // Process the next main command.
 void handle_cmd(android_app* app, int32_t cmd) {
     switch (cmd) {
         case APP_CMD_INIT_WINDOW:
             // The window is being shown, get it ready.
-            InitVulkan(app);
+            _pipeline->initVulkan(app);
             break;
         case APP_CMD_TERM_WINDOW:
             // The window is being hidden or closed, clean it up.
-            DeleteVulkan();
+            _pipeline->cleanup();
             break;
         default:
             __android_log_print(ANDROID_LOG_INFO, "Vulkan Tutorials",
@@ -34,6 +38,8 @@ void handle_cmd(android_app* app, int32_t cmd) {
 
 void android_main(struct android_app* app) {
 
+    _pipeline = std::make_unique<VulkanPipelineService>();
+    _pipeline->initVoxelData(app);
     // Set the callback to process system events
     app->onAppCmd = handle_cmd;
 
@@ -43,14 +49,14 @@ void android_main(struct android_app* app) {
 
     // Main loop
     do {
-        if (ALooper_pollAll(IsVulkanReady() ? 1 : 0, nullptr,
+        if (ALooper_pollAll(_pipeline->isInitialised() ? 1 : 0, nullptr,
                             &events, (void**)&source) >= 0) {
             if (source != NULL) source->process(app, source);
         }
 
         // render if vulkan is ready
-        if (IsVulkanReady()) {
-            VulkanDrawFrame();
+        if (_pipeline->isInitialised()) {
+            _pipeline->drawFrame();
         }
     } while (app->destroyRequested == 0);
 }
